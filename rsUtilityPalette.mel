@@ -1,0 +1,661 @@
+proc rsUtilityPalette(){
+
+    if (`window -exists rsUtilWindow`)
+    {
+        deleteUI rsUtilWindow;
+    }
+    
+    if (`dockControl -exists rsUtilWindowDC`)
+    {
+        deleteUI -control rsUtilWindowDC;
+    }
+    
+    window -t "rsUtility" rsUtilWindow;
+    
+    frameLayout
+    -l ""
+    MyFrameLayout;
+    
+    // create master Layout
+    
+    int $layoutPadding = 6;
+    int $bigButtonSize = 128;
+    int $smallButtonSize = 64;
+    
+    int $renWidth = `getAttr defaultResolution.width`;
+    int $renHeight = `getAttr defaultResolution.height`;
+    int $renSamp = `getAttr redshiftOptions.unifiedMaxSamples`;
+
+    preferredRenderer -f arnold -mc redshift;
+    //set to EXR
+    setAttr "redshiftOptions.imageFormat" 1;
+
+    
+    $form = `
+    formLayout
+    -w ($layoutPadding + $layoutPadding + $smallButtonSize + $layoutPadding + $smallButtonSize + $layoutPadding)
+    myFormLayout`;
+    
+    
+    $createRSMTLButton = `iconTextButton
+    -bgc .1 .1 .1
+    -w $smallButtonSize
+    -h $smallButtonSize
+    -label "rsMaterial"
+    -command "createRSMTL"
+    -st "textOnly"
+    createRSMTLButton`;
+    
+    $createRSMTLBlendButton = `iconTextButton
+    -bgc .1 .1 .1
+    -w $smallButtonSize
+    -h $smallButtonSize
+    -label "rsMaterial \n Blender"
+    -command "createRSMTLBlend"
+    -st "textOnly"
+    createRSMTLBlendButton`;
+    
+    $rsTriTexButton = `iconTextButton
+    -bgc .2 .2 .2
+    -w $smallButtonSize
+    -h $smallButtonSize
+    -label "rsTriTex"
+    -command "rsTriTex"
+    -st "textOnly"
+    rsTriTexButton`;
+    
+    $rsUVTexButton = `iconTextButton
+    -bgc .2 .2 .2
+    -w $smallButtonSize
+    -h $smallButtonSize
+    -label "rsUVTex"
+    -command "rsUVTex"
+    -st "textOnly"
+    rsUVTexButton`;
+    
+    $rsFocDButton = `iconTextButton
+    -bgc .5 .1 .1
+    -w $smallButtonSize
+    -h $smallButtonSize
+    -label "rsFocD"
+    -command "rsFocD"
+    -st "textOnly"
+    rsFocDButton`;
+    
+    $rToRampButton = `iconTextButton
+    -bgc .2 .2 .2
+    -w $smallButtonSize
+    -h ($smallButtonSize/3-4)
+    -label "outR -> vC"
+    -command "rToRamp"
+    -st "textOnly"
+    rToRampButton`;
+    
+    $gToRampButton = `iconTextButton
+    -bgc .2 .2 .2
+    -w $smallButtonSize
+    -h ($smallButtonSize/3-4)
+    -label "outG -> vC"
+    -command "gToRamp"
+    -st "textOnly"
+    gToRampButton`;
+    
+    $bToRampButton = `iconTextButton
+    -bgc .2 .2 .2
+    -w $smallButtonSize
+    -h ($smallButtonSize/3-4)
+    -label "outB -> vC"
+    -command "rToRamp"
+    -st "textOnly"
+    bToRampButton`;
+    
+    $randomOffsetButton = `iconTextButton
+    -bgc .2 .2 .2
+    -w $smallButtonSize
+    -h $smallButtonSize
+    -label "Random\nOffset"
+    -command "randomOffset"
+    -st "textOnly"
+    randomOffsetButton`;
+    
+    $sep1  = `separator
+    -height 20
+    -width ($smallButtonSize*2 + $layoutPadding*2)
+    -style "in"
+    sep1`;
+    
+    $sep2  = `separator
+    -height 20
+    -width ($smallButtonSize*2 + $layoutPadding*2)
+    -style "in"
+    sep2`;
+    
+    $renderDimXLabel = 
+    `text -label "X:"
+    renderDimXLabel`;
+    
+    $renderDimYLabel = 
+    `text -label "Y:"
+    renderDimYLabel`;
+    
+    $renderDimX = `intField
+    -width 50
+    -value $renWidth
+    renderDimX`;
+    
+    $renderDimY = `intField
+    -width 50
+    -value $renHeight
+    renderDimY`;
+    
+    $renderPercentLabel = 
+    `text -label "%:"
+    renderPercentLabel`;
+    
+    $renderPercent = `floatField
+    -width 50
+    -value 100
+    -pre 0
+    renderPercent`;
+    
+    $maxSampLabel = 
+    `text -label "S:"
+    maxSampLabel`;
+    
+    $maxSamp = `intField
+    -width 50
+    -value $renSamp
+    maxSamp`;
+    
+    $renderSetButton = `iconTextButton
+    -bgc .1 .6 .1
+    -w 140
+    -h 20
+    -label "Set"
+    -command "setRenderSettings"
+    -st "textOnly"
+    renderSetButton`;  
+    
+    $graphMaterialButton = `iconTextButton
+    -bgc .1 .1 .1
+    -w 140
+    -h 30
+    -label "Graph Material"
+    -command "graphMaterial"
+    -st "textOnly"
+    graphMaterialButton`;    
+    
+    $enableSubdivButton = `iconTextButton
+    -bgc .1 .1 .1
+    -w 68
+    -h 30
+    -label "SubD On"
+    -command "enableSubdiv"
+    -st "textOnly"
+    enableSubdivButton`;  
+    
+    $disableSubdivButton = `iconTextButton
+    -bgc .1 .1 .1
+    -w 68
+    -h 30
+    -label "SubD Off"
+    -command "disableSubdiv"
+    -st "textOnly"
+    disableSubdivButton`;  
+    
+    $enableDisplacementButton = `iconTextButton
+    -bgc .1 .1 .1
+    -w 140
+    -h 30
+    -label "Enable Displacement"
+    -command "enableDisplacement"
+    -st "textOnly"
+    enableDisplacementButton`;  
+    
+    $enableCausticsButton = `iconTextButton
+    -bgc .1 .1 .1
+    -w 140
+    -h 30
+    -label "Enable Caustics"
+    -command "enableCaustics"
+    -st "textOnly"
+    enableCausticsButton`;  
+    
+    
+    // now format the master formlayout
+    formLayout -e
+
+    //createRSMTLButton
+    -af $createRSMTLButton "left" $layoutPadding
+    -af $createRSMTLButton "top" $layoutPadding
+    
+    //createRSMTLBlendButton
+    -af $createRSMTLBlendButton "left" ($layoutPadding + $smallButtonSize + $layoutPadding)
+    -af $createRSMTLBlendButton "top" $layoutPadding
+    
+    //rsTriTexButton
+    -af $rsTriTexButton "left" ($layoutPadding)
+    -ac $rsTriTexButton "top"  ($layoutPadding) createRSMTLButton
+    
+    //rsUVTexButton
+    -af $rsUVTexButton "left" ($layoutPadding + $smallButtonSize + $layoutPadding)
+    -ac $rsUVTexButton "top"  ($layoutPadding) createRSMTLBlendButton
+       
+    //rsFocDButton
+    -af $rsFocDButton "left" ($layoutPadding)
+    -ac $rsFocDButton "top"  ($layoutPadding) rsTriTexButton
+    
+    //rToRampButton
+    -ac $rToRampButton "left" ($layoutPadding) rsFocDButton
+    -ac $rToRampButton "top"  ($layoutPadding) rsUVTexButton
+    
+    //gToRampButton
+    -ac $gToRampButton "left" ($layoutPadding) rsFocDButton
+    -ac $gToRampButton "top"  ($layoutPadding) rToRampButton
+    
+    //bToRampButton
+    -ac $bToRampButton "left" ($layoutPadding) rsFocDButton
+    -ac $bToRampButton "top"  ($layoutPadding) gToRampButton
+    
+ 	//randomOffsetButton
+    -af $randomOffsetButton "left" ($layoutPadding)
+    -ac $randomOffsetButton "top"  ($layoutPadding) rsFocDButton   
+    
+    //sep1
+    -af $sep1 "left" ($layoutPadding)
+    -ac $sep1 "top"  ($layoutPadding) randomOffsetButton
+
+    //renderDimX
+    -af $renderDimXLabel "left" ($layoutPadding)
+    -ac $renderDimXLabel "top"  ($layoutPadding) sep1
+    -ac $renderDimX "left" ($layoutPadding) renderDimXLabel
+    -ac $renderDimX "top"  ($layoutPadding-3) sep1
+    
+    //renderDimY
+    -ac $renderDimYLabel "left" ($layoutPadding) $renderDimX
+    -ac $renderDimYLabel "top"  ($layoutPadding) sep1
+    -ac $renderDimY "left" ($layoutPadding) renderDimYLabel
+    -ac $renderDimY "top"  ($layoutPadding-3) sep1
+    
+    //renderPercent
+    -af $renderPercentLabel "left" ($layoutPadding)
+    -ac $renderPercentLabel "top"  ($layoutPadding+4) $renderDimX
+    -ac $renderPercent "left"  ($layoutPadding -3) $renderPercentLabel
+    -ac $renderPercent "top"  ($layoutPadding) $renderDimX
+    
+     //renderPercent
+    -ac $maxSampLabel "left" ($layoutPadding) $renderPercent
+    -ac $maxSampLabel "top"  ($layoutPadding+4) $renderDimX
+    -ac $maxSamp "left"  ($layoutPadding -3) $maxSampLabel
+    -ac $maxSamp "top"  ($layoutPadding) $renderDimX
+    
+    //renderSetButton
+    -af $renderSetButton "left" ($layoutPadding)
+    -ac $renderSetButton "top"  ($layoutPadding + 5) maxSampLabel
+    
+    //sep2
+    -af $sep2 "left" ($layoutPadding)
+    -ac $sep2 "top"  ($layoutPadding) renderSetButton
+    
+    //graphMaterialButton
+    -af $graphMaterialButton "left" ($layoutPadding)
+    -ac $graphMaterialButton "top"  ($layoutPadding + 3) sep2
+    
+    //enableSubdivButton
+    -af $enableSubdivButton "left" ($layoutPadding)
+    -ac $enableSubdivButton "top"  ($layoutPadding) graphMaterialButton
+    
+    //disableSubdivButton
+    -ac $disableSubdivButton "left" ($layoutPadding -2) enableSubdivButton
+    -ac $disableSubdivButton "top"  ($layoutPadding) graphMaterialButton
+    
+    //enableDisplacementButton
+    -af $enableDisplacementButton "left" ($layoutPadding)
+    -ac $enableDisplacementButton "top"  ($layoutPadding) enableSubdivButton
+    
+    //enableCausticsButton
+    -af $enableCausticsButton "left" ($layoutPadding)
+    -ac $enableCausticsButton "top"  ($layoutPadding) enableDisplacementButton
+    
+    
+    $form;
+    
+    showWindow rsUtilWindow;
+    
+    dockControl -area left -content rsUtilWindow -closeCommand ("deleteUI -control rsUtilWindowDC;") -label "rsUtility Palette" rsUtilWindowDC;
+
+
+}        
+
+proc createRSMTL()
+{
+	$sel = `ls -sl`;
+
+    $newShadingNode = `shadingNode -asShader RedshiftMaterial`;
+	
+	if(size($sel)>=1)
+	{
+		for($n in $sel)
+		{
+			select -d;
+			select $n;
+			hyperShade -assign $newShadingNode;		
+		}
+	}
+}
+
+proc createRSMTLBlend()
+{
+    $sel = `ls -sl`;
+    $newBlend = `shadingNode -asShader RedshiftMaterialBlender`;
+    
+     if(size($sel) == 3)
+    {
+        connectAttr -f ($sel[0]+".outColor") ($newBlend+".baseColor");
+        connectAttr -f ($sel[1]+".outColor") ($newBlend+".layerColor1");
+        connectAttr -f ($sel[2]+".outColor") ($newBlend+".blendColor1");
+        
+    }
+}
+
+proc rsTriTex()
+{
+    $sel = `ls -sl`;
+    
+    
+    $textureFile = `shadingNode -asTexture -isColorManaged file`;
+    $rsTri = `shadingNode -asTexture RedshiftTriPlanar`;
+    $rsCC = `shadingNode -asTexture RedshiftColorCorrection`;
+    $ramp1 = `shadingNode -asTexture ramp`;
+    $ramp2 = `shadingNode -asTexture ramp`;
+	
+	$usrDataVec = `shadingNode -asUtility RedshiftUserDataVector`;
+	setAttr -type "string" ($usrDataVec+".attributeName") "randomOffset";
+	
+	addAttr -ln "Offset2"  -at double3  $rsTri;
+    addAttr -ln "Offset2x"  -at double -p Offset2  $rsTri;
+    addAttr -ln "Offset2y"  -at double -p Offset2  $rsTri;
+    addAttr -ln "Offset2z"  -at double -p Offset2  $rsTri;
+    setAttr -type double3 ($rsTri+".Offset2") 0 0 0;
+	
+	$addOffset = `shadingNode -asUtility plusMinusAverage`;
+	connectAttr -f ($usrDataVec+".out") ($addOffset+".input3D[0]");
+	connectAttr -f ($rsTri+".Offset2") ($addOffset+".input3D[1]");
+	connectAttr -f ($addOffset+".output3D") ($rsTri+".offset");
+    
+    $scaleMultDiv = `shadingNode -asUtility multiplyDivide`;
+    
+    $rsBump = `shadingNode -asTexture RedshiftBumpMap`;
+    
+    addAttr -ln "ScaleMult"  -at double  -dv 1 $rsTri;
+    setAttr -e-keyable true ($rsTri+".ScaleMult");
+    
+    addAttr -ln "Scale2"  -at double3  $rsTri;
+    addAttr -ln "Scale2x"  -at double -p Scale2  $rsTri;
+    addAttr -ln "Scale2y"  -at double -p Scale2  $rsTri;
+    addAttr -ln "Scale2z"  -at double -p Scale2  $rsTri;
+    setAttr -type double3 ($rsTri+".Scale2") 1 1 1;
+    
+    connectAttr -force ($rsTri+".Scale2x") ($scaleMultDiv+".input1X");
+    connectAttr -force ($rsTri+".Scale2y") ($scaleMultDiv+".input1Y");
+    connectAttr -force ($rsTri+".Scale2z") ($scaleMultDiv+".input1Z");
+    
+    connectAttr -force ($rsTri+".ScaleMult") ($scaleMultDiv+".input2X");
+    connectAttr -force ($rsTri+".ScaleMult") ($scaleMultDiv+".input2Y");
+    connectAttr -force ($rsTri+".ScaleMult") ($scaleMultDiv+".input2Z");
+    
+    connectAttr -force ($scaleMultDiv+".outputX") ($rsTri+".scale0");
+    connectAttr -force ($scaleMultDiv+".outputY") ($rsTri+".scale1");
+    connectAttr -force ($scaleMultDiv+".outputZ") ($rsTri+".scale2");
+    
+    connectAttr -force ($textureFile+".outColor") ($rsTri+".imageX");
+    connectAttr -force ($textureFile+".outColor") ($rsTri+".imageY");
+    connectAttr -force ($textureFile+".outColor") ($rsTri+".imageZ");
+    
+    connectAttr -force ($rsTri+".outColor") ($rsCC+".input");
+    
+    connectAttr -f ($rsTri+".outColorR") ($ramp1+".vCoord");
+    connectAttr -f ($rsTri+".outColorR") ($ramp2+".vCoord");
+    
+    connectAttr -force ($ramp1+".outColor") ($rsBump+".input");
+    
+    if(size($sel) == 1)
+    {
+        connectAttr -f ($rsCC+".outColor") ($sel[0]+".diffuse_color");
+        connectAttr -f ($rsBump+".out") ($sel[0]+".bump_input");
+        connectAttr -f ($ramp2+".outColor.outColorR") ($sel[0]+".refl_roughness");
+        
+    }
+    
+    select -r $textureFile;
+    select -add $rsTri;
+    select -add $rsCC;    
+    select -add $ramp1;
+    select -add $ramp2;    
+    select -add $scaleMultDiv;   
+    select -add $rsBump;  
+}
+
+proc rsUVTex()
+{
+    $sel = `ls -sl`;
+    
+    
+    $textureFile = `shadingNode -asTexture -isColorManaged file`;
+    $rsCC = `shadingNode -asTexture RedshiftColorCorrection`;
+    $ramp1 = `shadingNode -asTexture ramp`;
+    $ramp2 = `shadingNode -asTexture ramp`;
+    
+    $rsBump = `shadingNode -asTexture RedshiftBumpMap`;
+    
+    connectAttr -force ($textureFile+".outColor") ($rsCC+".input");
+    
+    connectAttr -f ($textureFile+".outColorR") ($ramp1+".vCoord");
+    connectAttr -f ($textureFile+".outColorR") ($ramp2+".vCoord");
+    
+    connectAttr -force ($ramp1+".outColor") ($rsBump+".input");
+    
+    if(size($sel) == 1)
+    {
+        connectAttr -f ($rsCC+".outColor") ($sel[0]+".diffuse_color");
+        connectAttr -f ($rsBump+".out") ($sel[0]+".bump_input");
+        connectAttr -f ($ramp2+".outColor.outColorR") ($sel[0]+".refl_roughness");
+        
+    }
+    
+    select -r $textureFile;
+    select -add $rsCC;    
+    select -add $ramp1;
+    select -add $ramp2;    
+    select -add $rsBump;  
+}
+
+proc rsFocD()
+{
+   
+    $selCam = `ls -sl`;
+    
+    pickWalk -d down;
+    
+    $camShape = `ls -sl`;
+        
+    $distance = `distanceDimension -sp 0 0 0 -ep 0 0 1`;
+    $newLocs = `listConnections $distance.startPoint`;
+    
+    print $newLocs[0];
+    print $newLocs[1];
+    
+    $camPoint = `rename $newLocs[0] "camera_focDist_cam"`;
+    $focPoint = `rename $newLocs[1] "camera_focDist_foc"`;
+    
+    parentConstraint -weight 1 $selCam $camPoint;
+    
+    setAttr ($camShape[0]+".depthOfField") 1;
+    
+    connectAttr ($distance+".distance") ($camShape[0]+".focusDistance") -f;
+
+
+}
+
+proc setRenderSettings()
+{
+    setAttr "redshiftOptions.unifiedMaxSamples" (`intField -q -value maxSamp`);
+    setAttr "defaultResolution.width" ((`intField -q -value renderDimX`) * (`floatField -q -value renderPercent`) * .01);
+    setAttr "defaultResolution.height" ((`intField -q -value renderDimY`) * (`floatField -q -value renderPercent`) * .01);
+    setAttr "defaultResolution.deviceAspectRatio" ((float)(`intField -q -value renderDimX`) / (`intField -q -value renderDimY`));
+    setAttr "defaultResolution.pixelAspect" (1);
+
+    
+}
+
+proc graphMaterial(){
+
+    string $materials[] = stringArrayRemoveDuplicates(ls("-mat",listConnections(listConnections("-type","shadingEngine",`ls -sl -o -dag -s`))));
+    print $materials;
+    select -d;
+    select $materials[0];
+    
+
+    
+
+
+    	string $ned = ( `getCurrentNodeEditor`);
+    	if ("" != $ned) {
+    		nodeEdGraphControl($ned, "nodeEditor -e -rfs -ups -ds ");
+    }
+
+    NodeEditorGraphUpDownstream;
+
+}
+
+proc enableSubdiv(){
+    
+    $sel = `ls -sl`;
+    for($n in $sel)
+    {
+        setAttr ($n + ".rsEnableSubdivision") 1;
+        setAttr ($n + ".rsMaxTessellationSubdivs") 3;
+        
+    }
+}
+
+proc disableSubdiv(){
+    
+    $sel = `ls -sl`;
+    for($n in $sel)
+    {
+        setAttr ($n + ".rsEnableSubdivision") 0;        
+    }
+}
+
+proc enableDisplacement(){
+    
+    $sel = `ls -sl`;
+    for($n in $sel)
+    {
+        setAttr ($n + ".rsEnableDisplacement") 1;        
+    }
+}
+
+proc enableCaustics(){
+    
+    $sel = `ls -sl`;
+    for($n in $sel)
+    {
+        setAttr ($n + ".rsEnableVisibilityOverrides") 1;
+        setAttr ($n + ".rsCausticCaster") 1;
+        
+    }
+}
+
+proc rToRamp(){
+    $sel = `ls -sl`;
+    
+    if(size($sel) == 1)
+    {
+        print ($sel[0] + "\n");
+        
+        $newRamp = `shadingNode -asTexture ramp`;
+        connectAttr -f ($sel[0]+".outColorR") ($newRamp+".vCoord");
+        
+    }else{
+        
+        print ("Select one node, okay?");
+        
+    }
+}
+
+proc gToRamp(){
+    $sel = `ls -sl`;
+    
+    if(size($sel) == 1)
+    {
+        print ($sel[0] + "\n");
+        
+        $newRamp = `shadingNode -asTexture ramp`;
+        connectAttr -f ($sel[0]+".outColorG") ($newRamp+".vCoord");
+        
+    }else{
+        
+        print ("Select one node, okay?");
+        
+    }
+}
+
+proc bToRamp(){
+    $sel = `ls -sl`;
+    
+    if(size($sel) == 1)
+    {
+        print ($sel[0] + "\n");
+        
+        $newRamp = `shadingNode -asTexture ramp`;
+        connectAttr -f ($sel[0]+".outColorB") ($newRamp+".vCoord");
+        
+    }else{
+        
+        print ("Select one node, okay?");
+        
+    }
+}
+
+proc randomOffset(){   
+    $sel = `ls -sl`;
+    
+    for($n in $sel)
+    {
+        $randNumX = `rand 1000`;
+        $randNumY = `rand 1000`;
+        $randNumZ = `rand 1000`;
+        
+        if((`attributeExists "randomOffset" $n`) == 0)
+        {
+            addAttr -ln "randomOffset"  -at double3  $n;
+            addAttr -ln "randomOffsetX"  -at double -p randomOffset $n;
+            addAttr -ln "randomOffsetY"  -at double -p randomOffset $n;
+            addAttr -ln "randomOffsetZ"  -at double -p randomOffset $n;
+            setAttr -type double3 ($n+".randomOffset") $randNumX $randNumY $randNumZ;
+            setAttr -e-keyable true ($n+".randomOffset");
+            setAttr -e-keyable true ($n+".randomOffsetX");
+            setAttr -e-keyable true ($n+".randomOffsetY");
+            setAttr -e-keyable true ($n+".randomOffsetZ");
+        }else{
+            print "Replacing random offset attribute... \n";
+            deleteAttr -at "randomOffset" $n;
+            addAttr -ln "randomOffset"  -at double3  $n;
+            addAttr -ln "randomOffsetX"  -at double -p randomOffset $n;
+            addAttr -ln "randomOffsetY"  -at double -p randomOffset $n;
+            addAttr -ln "randomOffsetZ"  -at double -p randomOffset $n;
+            setAttr -type double3 ($n+".randomOffset") $randNumX $randNumY $randNumZ;
+            setAttr -e-keyable true ($n+".randomOffset");
+            setAttr -e-keyable true ($n+".randomOffsetX");
+            setAttr -e-keyable true ($n+".randomOffsetY");
+            setAttr -e-keyable true ($n+".randomOffsetZ");
+           
+        }
+    }
+   
+}
+
+
+rsUtilityPalette();
