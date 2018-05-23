@@ -117,6 +117,15 @@ proc rsUtilityPalette(){
     -command "randomOffset"
     -st "textOnly"
     randomOffsetButton`;
+	
+	 $rsMeshLightButton = `iconTextButton
+    -bgc .2 .2 .2
+    -w $smallButtonSize
+    -h $smallButtonSize
+    -label "Mesh Light"
+    -command "rsMeshLight"
+    -st "textOnly"
+    rsMeshLightButton`;
     
     $sep1  = `separator
     -height 20
@@ -259,7 +268,11 @@ proc rsUtilityPalette(){
     
  	//randomOffsetButton
     -af $randomOffsetButton "left" ($layoutPadding)
-    -ac $randomOffsetButton "top"  ($layoutPadding) rsFocDButton   
+    -ac $randomOffsetButton "top"  ($layoutPadding - 1) rsFocDButton   
+	
+	//rsMeshLightButton
+    -ac $rsMeshLightButton "left" ($layoutPadding) randomOffsetButton
+    -ac $rsMeshLightButton "top"  ($layoutPadding) bToRampButton   
     
     //sep1
     -af $sep1 "left" ($layoutPadding)
@@ -361,13 +374,34 @@ proc createRSMTLBlend()
 proc rsTriTex()
 {
     $sel = `ls -sl`;
-    
+  
     
     $textureFile = `shadingNode -asTexture -isColorManaged file`;
     $rsTri = `shadingNode -asTexture RedshiftTriPlanar`;
     $rsCC = `shadingNode -asTexture RedshiftColorCorrection`;
     $ramp1 = `shadingNode -asTexture ramp`;
     $ramp2 = `shadingNode -asTexture ramp`;
+	$rsBump = `shadingNode -asTexture RedshiftBumpMap`;
+	
+	$place2dTex = `shadingNode -asUtility place2dTexture`;
+	connectAttr -force ($place2dTex+".outUV") ($textureFile+".uvCoord");
+	connectAttr -force ($place2dTex+".outUvFilterSize") ($textureFile+".uvFilterSize");
+	connectAttr -force ($place2dTex+".coverage") ($textureFile+".coverage");
+	connectAttr -force ($place2dTex+".translateFrame") ($textureFile+".translateFrame");
+	connectAttr -force ($place2dTex+".rotateFrame") ($textureFile+".rotateFrame");
+	connectAttr -force ($place2dTex+".mirrorU") ($textureFile+".mirrorU");
+	connectAttr -force ($place2dTex+".mirrorV") ($textureFile+".mirrorV");
+	connectAttr -force ($place2dTex+".stagger") ($textureFile+".stagger");
+	connectAttr -force ($place2dTex+".wrapU") ($textureFile+".wrapU");
+	connectAttr -force ($place2dTex+".wrapV") ($textureFile+".wrapV");
+	connectAttr -force ($place2dTex+".repeatUV") ($textureFile+".repeatUV");
+	connectAttr -force ($place2dTex+".vertexUvOne") ($textureFile+".vertexUvOne");
+	connectAttr -force ($place2dTex+".vertexUvTwo") ($textureFile+".vertexUvTwo");
+	connectAttr -force ($place2dTex+".vertexUvThree") ($textureFile+".vertexUvThree");
+	connectAttr -force ($place2dTex+".vertexCameraOne") ($textureFile+".vertexCameraOne");
+	connectAttr -force ($place2dTex+".noiseUV") ($textureFile+".noiseUV");
+	connectAttr -force ($place2dTex+".offset") ($textureFile+".offset");
+	connectAttr -force ($place2dTex+".rotateUV") ($textureFile+".rotateUV");
 	
 	$usrDataVec = `shadingNode -asUtility RedshiftUserDataVector`;
 	setAttr -type "string" ($usrDataVec+".attributeName") "randomOffset";
@@ -384,9 +418,7 @@ proc rsTriTex()
 	connectAttr -f ($addOffset+".output3D") ($rsTri+".offset");
     
     $scaleMultDiv = `shadingNode -asUtility multiplyDivide`;
-    
-    $rsBump = `shadingNode -asTexture RedshiftBumpMap`;
-    
+       
     addAttr -ln "ScaleMult"  -at double  -dv 1 $rsTri;
     setAttr -e-keyable true ($rsTri+".ScaleMult");
     
@@ -434,6 +466,9 @@ proc rsTriTex()
     select -add $ramp2;    
     select -add $scaleMultDiv;   
     select -add $rsBump;  
+	select -add $usrDataVec;
+	select -add $addOffset;
+	select -add $place2dTex;
 }
 
 proc rsUVTex()
@@ -445,8 +480,68 @@ proc rsUVTex()
     $rsCC = `shadingNode -asTexture RedshiftColorCorrection`;
     $ramp1 = `shadingNode -asTexture ramp`;
     $ramp2 = `shadingNode -asTexture ramp`;
+	$rsBump = `shadingNode -asTexture RedshiftBumpMap`;
+	
+	$place2dTex = `shadingNode -asUtility place2dTexture`;
+	connectAttr -force ($place2dTex+".outUV") ($textureFile+".uvCoord");
+	connectAttr -force ($place2dTex+".outUvFilterSize") ($textureFile+".uvFilterSize");
+	connectAttr -force ($place2dTex+".coverage") ($textureFile+".coverage");
+	connectAttr -force ($place2dTex+".translateFrame") ($textureFile+".translateFrame");
+	connectAttr -force ($place2dTex+".rotateFrame") ($textureFile+".rotateFrame");
+	connectAttr -force ($place2dTex+".mirrorU") ($textureFile+".mirrorU");
+	connectAttr -force ($place2dTex+".mirrorV") ($textureFile+".mirrorV");
+	connectAttr -force ($place2dTex+".stagger") ($textureFile+".stagger");
+	connectAttr -force ($place2dTex+".wrapU") ($textureFile+".wrapU");
+	connectAttr -force ($place2dTex+".wrapV") ($textureFile+".wrapV");
+	connectAttr -force ($place2dTex+".repeatUV") ($textureFile+".repeatUV");
+	connectAttr -force ($place2dTex+".vertexUvOne") ($textureFile+".vertexUvOne");
+	connectAttr -force ($place2dTex+".vertexUvTwo") ($textureFile+".vertexUvTwo");
+	connectAttr -force ($place2dTex+".vertexUvThree") ($textureFile+".vertexUvThree");
+	connectAttr -force ($place2dTex+".vertexCameraOne") ($textureFile+".vertexCameraOne");
+	connectAttr -force ($place2dTex+".noiseUV") ($textureFile+".noiseUV");
+	connectAttr -force ($place2dTex+".offset") ($textureFile+".offset");
+	connectAttr -force ($place2dTex+".rotateUV") ($textureFile+".rotateUV");
+
+	
+	$usrDataVec = `shadingNode -asUtility RedshiftUserDataVector`;
+	setAttr -type "string" ($usrDataVec+".attributeName") "randomOffset";
+	
+	addAttr -ln "Offset2" -at double3 $place2dTex;
+    addAttr -ln "Offset2x" -at double -p Offset2 $place2dTex;
+    addAttr -ln "Offset2y" -at double -p Offset2 $place2dTex;
+    addAttr -ln "Offset2z" -at double -p Offset2 $place2dTex;
+    setAttr -type double3 ($place2dTex+".Offset2") 0 0 0;
+	
+	$addOffset = `shadingNode -asUtility plusMinusAverage`;
+	connectAttr -f ($usrDataVec+".out") ($addOffset+".input3D[0]");
+	connectAttr -f ($place2dTex+".Offset2") ($addOffset+".input3D[1]");
+	connectAttr -f ($addOffset+".output3Dx") ($place2dTex+".offsetU");
+	connectAttr -f ($addOffset+".output3Dy") ($place2dTex+".offsetV");
     
-    $rsBump = `shadingNode -asTexture RedshiftBumpMap`;
+    $scaleMultDiv = `shadingNode -asUtility multiplyDivide`;
+       
+    addAttr -ln "ScaleMult"  -at double  -dv 1 $place2dTex;
+    setAttr -e-keyable true ($place2dTex+".ScaleMult");
+    
+    addAttr -ln "Scale2" -at double3  $place2dTex;
+    addAttr -ln "Scale2x" -at double -p Scale2 $place2dTex;
+    addAttr -ln "Scale2y" -at double -p Scale2 $place2dTex;
+    addAttr -ln "Scale2z" -at double -p Scale2 $place2dTex;
+    setAttr -type double3 ($place2dTex+".Scale2") 1 1 1;
+    
+    connectAttr -force ($place2dTex+".Scale2x") ($scaleMultDiv+".input1X");
+    connectAttr -force ($place2dTex+".Scale2y") ($scaleMultDiv+".input1Y");
+    connectAttr -force ($place2dTex+".Scale2z") ($scaleMultDiv+".input1Z");
+    
+    connectAttr -force ($place2dTex+".ScaleMult") ($scaleMultDiv+".input2X");
+    connectAttr -force ($place2dTex+".ScaleMult") ($scaleMultDiv+".input2Y");
+    connectAttr -force ($place2dTex+".ScaleMult") ($scaleMultDiv+".input2Z");
+    
+    connectAttr -force ($scaleMultDiv+".outputX") ($place2dTex+".repeatU");
+    connectAttr -force ($scaleMultDiv+".outputY") ($place2dTex+".repeatV");
+    //connectAttr -force ($scaleMultDiv+".outputZ") ($rsTri+".scale2");
+    
+
     
     connectAttr -force ($textureFile+".outColor") ($rsCC+".input");
     
@@ -468,6 +563,9 @@ proc rsUVTex()
     select -add $ramp1;
     select -add $ramp2;    
     select -add $rsBump;  
+	select -add $usrDataVec;
+	select -add $addOffset;
+	select -add $place2dTex; 
 }
 
 proc rsFocD()
@@ -639,6 +737,7 @@ proc randomOffset(){
             setAttr -e-keyable true ($n+".randomOffsetX");
             setAttr -e-keyable true ($n+".randomOffsetY");
             setAttr -e-keyable true ($n+".randomOffsetZ");
+			print ("Created random offset values for: "+$n);
         }else{
             print "Replacing random offset attribute... \n";
             deleteAttr -at "randomOffset" $n;
@@ -651,11 +750,100 @@ proc randomOffset(){
             setAttr -e-keyable true ($n+".randomOffsetX");
             setAttr -e-keyable true ($n+".randomOffsetY");
             setAttr -e-keyable true ($n+".randomOffsetZ");
+			print ("Created random offset values for: "+$n);
            
         }
     }
    
 }
+
+proc rsMeshLight()
+{
+    string $sel[] = `ls -sl`;
+    if (size($sel) ==0)
+        print "Select some objects and try again!";
+    else
+    {
+        for ($i=0; $i <size($sel); $i++)
+        {
+            string $selShape[] = `listRelatives -s $sel[$i]`;
+            redshiftCreateLight "RedshiftPhysicalLight";
+            string $meshLight = `rename ("meshLight_"+$sel[$i])`;
+            string $meshLightShape[] = `listRelatives -s $meshLight`;
+            if (`getAttr ($sel[$i]+".tx")`== 0 && 
+                `getAttr ($sel[$i]+".ty")`== 0 && 
+                `getAttr ($sel[$i]+".tz")`== 0 &&
+                `getAttr ($sel[$i]+".rx")`== 0 && 
+                `getAttr ($sel[$i]+".ry")`== 0 && 
+                `getAttr ($sel[$i]+".rz")`== 0 &&
+                `getAttr ($sel[$i]+".sx")`== 1 && 
+                `getAttr ($sel[$i]+".sy")`== 1 && 
+                `getAttr ($sel[$i]+".sz")`== 1)
+            {
+                $bbCenterX = 
+                    -(`getAttr ($sel[$i]+".boundingBoxMinX")`+ `getAttr ($sel[$i]+".boundingBoxMaxX")`)/2;
+                $bbCenterY = 
+                    -(`getAttr ($sel[$i]+".boundingBoxMinY")`+ `getAttr ($sel[$i]+".boundingBoxMaxY")`)/2;
+                $bbCenterZ = 
+                    -(`getAttr ($sel[$i]+".boundingBoxMinZ")`+ `getAttr ($sel[$i]+".boundingBoxMaxZ")`)/2;
+                setAttr ($sel[$i]+".tx") $bbCenterX;
+                setAttr ($sel[$i]+".ty") $bbCenterY;
+                setAttr ($sel[$i]+".tz") $bbCenterZ;
+                makeIdentity -apply true -t 1 -r 1 -s 1 -n 0 -pn 1 $sel[$i];
+                $invBBX = -$bbCenterX;
+                $invBBY = -$bbCenterY;
+                $invBBZ = -$bbCenterZ;
+                setAttr ($meshLight+".tx") $invBBX;
+                setAttr ($meshLight+".ty") $invBBY;
+                setAttr ($meshLight+".tz") $invBBZ;
+                setAttr ($meshLightShape[0]+".areaShape") 4;
+                parent -add -s $selShape[$i] $meshLight;
+                connectAttr  -force 
+                    ($sel[$i]+"|"+$selShape[$i]+".message") 
+                    ($meshLightShape[0]+".areaShapeObject");
+                setAttr ($sel[$i]+".tx") $invBBX;
+                setAttr ($sel[$i]+".ty") $invBBY;
+                setAttr ($sel[$i]+".tz") $invBBZ;
+                print ("Adding controls to "+ $meshLightShape[0] + "...\n");
+                addAttr -ln "useLightColor"  -at bool  $meshLightShape[0];
+                setAttr -e -k true ($meshLightShape[0]+".useLightColor") 1;
+                setAttr ($selShape[$i]+".overrideEnabled") 1;
+                setAttr ($selShape[$i]+".overrideColor") 13;
+                connectAttr ($meshLightShape[0]+".color") ($selShape[$i]+".overrideColorRGB");
+                connectAttr ($meshLightShape[0]+".useLightColor") ($selShape[$i]+".overrideRGBColors");
+                setAttr ($meshLight+".displayHandle") 1;
+                hide $sel[$i];
+            }
+            else
+            {
+                setAttr ($meshLight+".tx") `getAttr ($sel[$i]+".tx")`;
+                setAttr ($meshLight+".ty") `getAttr ($sel[$i]+".ty")`;
+                setAttr ($meshLight+".tz") `getAttr ($sel[$i]+".tz")`;
+                setAttr ($meshLight+".rx") `getAttr ($sel[$i]+".rx")`;
+                setAttr ($meshLight+".ry") `getAttr ($sel[$i]+".ry")`;
+                setAttr ($meshLight+".rz") `getAttr ($sel[$i]+".rz")`;
+                setAttr ($meshLight+".sx") `getAttr ($sel[$i]+".sx")`;
+                setAttr ($meshLight+".sy") `getAttr ($sel[$i]+".sy")`;
+                setAttr ($meshLight+".sz") `getAttr ($sel[$i]+".sz")`;
+                setAttr ($meshLightShape[0]+".areaShape") 4;
+                parent -add -s $selShape[$i] $meshLight;
+                connectAttr  -force 
+                ($sel[$i]+"|"+$selShape[$i]+".message") 
+                ($meshLightShape[0]+".areaShapeObject");
+                print ("Adding controls to "+ $meshLightShape[0] + "...\n");
+                addAttr -ln "useLightColor"  -at bool  $meshLightShape[0];
+                setAttr -e -k true ($meshLightShape[0]+".useLightColor") 1;
+                setAttr ($selShape[$i]+".overrideEnabled") 1;
+                setAttr ($selShape[$i]+".overrideColor") 13;
+                connectAttr ($meshLightShape[0]+".color") ($selShape[$i]+".overrideColorRGB");
+                connectAttr ($meshLightShape[0]+".useLightColor") ($selShape[$i]+".overrideRGBColors");
+                setAttr ($meshLight+".displayHandle") 1;
+                hide $sel[$i];
+            }
+        }
+    }
+}
+
 
 
 rsUtilityPalette();
